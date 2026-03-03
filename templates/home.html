@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Laptop Price Predictor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: black;
+    color: white;
+    overflow: hidden;
+}
+
+/* INTRO VIDEO */
+#introVideo {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 10;
+}
+
+/* FORM SECTION */
+.form-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s ease;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.show-form {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.container {
+    width: 90%;
+    max-width: 1250px;
+    padding: 60px;
+    border-radius: 30px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 0 60px rgba(0,255,255,0.25);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 32px;
+}
+
+.row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+}
+
+.form-group { flex: 1; }
+.full-width { margin-bottom: 25px; }
+
+select {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(0,255,255,0.3);
+    font-size: 16px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+select:hover {
+    border: 1px solid cyan;
+    box-shadow: 0 0 20px rgba(0,255,255,0.7),
+                0 0 35px rgba(0,255,255,1);
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-3px);
+}
+
+select:focus {
+    outline: none;
+    border: 1px solid cyan;
+    box-shadow: 0 0 25px rgba(0,255,255,1),
+                0 0 50px rgba(0,255,255,1);
+}
+
+select option {
+    background: #111;
+    color: white;
+}
+
+/* SMALLER PREMIUM BUTTON */
+.predict-btn {
+    margin-top: 50px;
+    width: 450px;
+    padding: 18px 0;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: rgba(0,255,255,0.18);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 20px rgba(0,255,255,0.7);
+    transition: all 0.35s ease;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    letter-spacing: 0.8px;
+}
+
+.predict-btn:hover {
+    box-shadow: 0 0 35px rgba(0,255,255,0.9),
+                0 0 80px rgba(0,255,255,0.7),
+                0 0 120px rgba(0, 255, 255,0.4);
+    transform: scale(1.05);
+}
+
+.predict-btn:active {
+    transform: scale(0.95);
+}
+
+/* RESULT */
+.result {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: cyan;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* LOADING SPINNER */
+#loading {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #444;
+    border-top: 5px solid cyan;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .row { flex-direction: column; }
+    .container { padding: 35px; }
+}
+</style>
+</head>
+
+<body>
+
+<video id="introVideo" autoplay muted>
+    <source src="{{ url_for('static', filename='opening.mp4') }}" type="video/mp4">
+</video>
+
+<div class="form-section" id="formSection">
+<div class="container">
+<h1>💻 🅻🅰🅿🆃🅾🅿 🅿🆁🅸🅲🅴 🅿🆁🅴🅳🅸🅲🆃🅾🆁</h1>
+
+<form id="predictForm">
+
+<div class="full-width">
+<select name="Company" required>
+<option disabled selected>Select Company</option>
+<option>Dell</option>
+<option>HP</option>
+<option>Lenovo</option>
+<option>Asus</option>
+<option>Acer</option>
+<option>Apple</option>
+</select>
+</div>
+
+<div class="full-width">
+<select name="TypeName" required>
+<option disabled selected>Select Type</option>
+<option>Ultrabook</option>
+<option>Notebook</option>
+<option>Gaming</option>
+<option>Workstation</option>
+</select>
+</div>
+
+<div class="row">
+<div class="form-group">
+<select name="Cpu" required>
+<option disabled selected>Select CPU</option>
+<option>Intel i3</option>
+<option>Intel i5</option>
+<option>Intel i7</option>
+<option>Ryzen 5</option>
+<option>Ryzen 7</option>
+</select>
+</div>
+
+<div class="form-group">
+<select name="Gpu" required>
+<option disabled selected>Select GPU</option>
+<option>Intel UHD</option>
+<option>Nvidia GTX</option>
+<option>Nvidia RTX</option>
+</select>
+</div>
+</div>
+
+<div class="row">
+<div class="form-group">
+<select name="Ram" required>
+<option disabled selected>Select RAM</option>
+<option>4GB</option>
+<option>8GB</option>
+<option>16GB</option>
+<option>32GB</option>
+</select>
+</div>
+
+<div class="form-group">
+<select name="Memory" required>
+<option disabled selected>Select ROM</option>
+<option>256GB SSD</option>
+<option>512GB SSD</option>
+<option>1TB SSD</option>
+</select>
+</div>
+</div>
+
+<div class="row">
+<div class="form-group">
+<select name="Inches" required>
+<option disabled selected>Select Screen Size</option>
+<option>13.3</option>
+<option>14</option>
+<option>15.6</option>
+<option>16</option>
+<option>17.3</option>
+</select>
+</div>
+
+<div class="form-group">
+<select name="Weight" required>
+<option disabled selected>Select Weight (kg)</option>
+<option>1.2</option>
+<option>1.5</option>
+<option>2.0</option>
+<option>2.5</option>
+</select>
+</div>
+</div>
+
+<button type="submit" class="predict-btn">💵 Predict Price</button>
+
+</form>
+
+<div id="loading">
+<div class="spinner"></div>
+<p>Predicting price...</p>
+</div>
+
+<div class="result" id="result"></div>
+
+</div>
+</div>
+
+<script>
+const video = document.getElementById("introVideo");
+const formSection = document.getElementById("formSection");
+
+video.onended = function() {
+    video.style.transition = "opacity 0.8s ease";
+    video.style.opacity = "0";
+    setTimeout(() => {
+        video.remove();
+        formSection.classList.add("show-form");
+        document.body.style.overflow = "auto";
+    }, 800);
+};
+
+document.getElementById("predictForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let formData = new FormData(this);
+    const loading = document.getElementById("loading");
+    const result = document.getElementById("result");
+
+    loading.style.display = "block";
+    result.style.opacity = "0";
+    result.innerHTML = "";
+
+    const startTime = Date.now();
+
+    fetch("/predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        const elapsed = Date.now() - startTime;
+        const minimumTime = 1000;
+        const remainingTime = Math.max(minimumTime - elapsed, 0);
+
+        setTimeout(() => {
+            loading.style.display = "none";
+
+            if(data.price){
+                result.innerHTML =
+                    "💰 Predicted Price: ₹ " + Number(data.price).toLocaleString();
+            } else {
+                result.innerHTML =
+                    "❌ Error: " + data.error;
+            }
+
+            result.style.opacity = "1";
+
+        }, remainingTime);
+
+    })
+    .catch(() => {
+        loading.style.display = "none";
+        result.innerHTML = "Something went wrong!";
+        result.style.opacity = "1";
+    });
+});
+</script>
+
+</body>
+</html>
